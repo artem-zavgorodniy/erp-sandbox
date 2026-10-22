@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Міні-ERP «Зелена Полиця»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F8F7;--panel:#FFFFFF;--ink:#16262B;--muted:#5C7078;--line:#D5E0DE;--soft:#EDF3F2;--dark:#0B2A33;--runbg:#0B2A33;--runfg:#FFFFFF;
+ --sales:#028090;--wh:#B77A17;--buy:#6B5BA8;--acc:#C1443B;--ok:#2E7D5B;--warnbg:#FBF3E2;--errbg:#FBEDEB;--err:#B23A31;color-scheme:light;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1C21;--panel:#132A31;--ink:#E3ECEB;--muted:#93A9AE;--line:#24414A;--soft:#18343C;--dark:#08171B;--runbg:#3BD9B0;--runfg:#08171B;
+ --sales:#2DB5B5;--wh:#E1A84A;--buy:#A99BE6;--acc:#F08A80;--ok:#5FCB9A;--warnbg:#3A3020;--errbg:#3A1F1D;--err:#F08A80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1C21;--panel:#132A31;--ink:#E3ECEB;--muted:#93A9AE;--line:#24414A;--soft:#18343C;--dark:#08171B;--runbg:#3BD9B0;--runfg:#08171B;
+ --sales:#2DB5B5;--wh:#E1A84A;--buy:#A99BE6;--acc:#F08A80;--ok:#5FCB9A;--warnbg:#3A3020;--errbg:#3A1F1D;--err:#F08A80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 20px 40px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 20px;margin-bottom:14px}
+h1{font-size:22px;font-weight:600;margin:0}header p{margin:0;color:var(--muted);font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+nav button{font:500 14px "IBM Plex Sans",sans-serif;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer;display:flex;gap:8px;align-items:center}
+nav button[aria-selected="true"]{background:var(--runbg);color:var(--runfg);border-color:var(--runbg)}
+nav .dot{width:9px;height:9px;border-radius:50%}
+.badge{font:600 12px "IBM Plex Sans",sans-serif;background:var(--acc);color:#fff;border-radius:999px;padding:0 7px}
+nav .spacer{flex:1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.card h2{font-size:16px;margin:0 0 10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card h2 .dot{width:10px;height:10px;border-radius:50%}
+.full{grid-column:1/-1}
+.note{color:var(--muted);font-size:13px;margin:0 0 10px}
+form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--muted)}
+select,input{font:15px "IBM Plex Sans",sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;min-width:0}
+input[type=number]{width:90px}
+.btn{font:500 14px "IBM Plex Sans",sans-serif;border-radius:8px;padding:7px 13px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);white-space:nowrap}
+.btn.main{background:var(--runbg);color:var(--runfg);border-color:var(--runbg)}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--sales);outline-offset:2px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font:600 12px "IBM Plex Sans",sans-serif;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.doc{font:600 13px "IBM Plex Mono",ui-monospace,monospace}
+tr.sel td{background:var(--soft)}
+tr.click{cursor:pointer}
+.st{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--soft);color:var(--ink)}
+.st.g{background:var(--ok);color:#fff}.st.y{background:var(--wh);color:#fff}.st.b{background:var(--sales);color:#fff}
+.low td{color:var(--err)}.low td:first-child::after{content:"  ▲ нижче мінімуму";font-size:12px}
+.msg{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:14px;display:none}
+.msg.err{display:block;background:var(--errbg);color:var(--err)}.msg.ok{display:block;background:var(--warnbg);color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi span{display:block;font-size:13px;color:var(--muted)}.kpi b{font:600 22px "IBM Plex Sans",sans-serif;font-variant-numeric:tabular-nums}
+.path{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.step{border:1px solid var(--line);border-left:5px solid var(--c);border-radius:8px;padding:8px 11px;min-width:150px;background:var(--bg)}
+.step b{display:block;font-size:12px;color:var(--c);text-transform:uppercase;letter-spacing:.04em}
+.step span{font-size:13px}.step small{display:block;color:var(--muted);font:12px "IBM Plex Mono",monospace}
+.arrow{align-self:center;color:var(--muted)}
+.mods{margin-top:10px;font-size:14px}
+.log li{padding:5px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;gap:10px}
+.log{list-style:none;margin:0;padding:0;max-height:420px;overflow:auto}
+.log .m{font-size:12px;font-weight:600;color:var(--c);min-width:92px}
+.log .t{color:var(--muted);font:12px "IBM Plex Mono",monospace;min-width:44px}
+.hidden{display:none}
+@media (max-width:860px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}}
+</style></head><body><div class="wrap">
+<header><h1>Міні-ERP «Зелена Полиця»</h1><p>Одна база на всю компанію: кожна дія одразу видна в усіх модулях. Дані навчальні.</p></header>
+<nav role="tablist" id="nav"></nav>
+<main id="view"></main>
+</div>
+<script>
+const MOD={sales:{n:"Продажі",c:"var(--sales)"},wh:{n:"Склад",c:"var(--wh)"},buy:{n:"Закупівлі",c:"var(--buy)"},acc:{n:"Бухгалтерія",c:"var(--acc)"},rep:{n:"Звіт",c:"var(--muted)"},log:{n:"Журнал",c:"var(--muted)"}};
+const INIT=()=>({
+ products:[
+  {id:1029,name:"Крем для рук з обліпихою, 75 мл",price:164,cost:96,stock:40,res:0,min:10,sup:"ТОВ «Натур Лаб»"},
+  {id:1036,name:"Сироватка з вітаміном С, 30 мл",price:489,cost:338,stock:12,res:0,min:5,sup:"ТОВ «Натур Лаб»"},
+  {id:1017,name:"Кава в зернах, Ефіопія, 250 г",price:342,cost:214,stock:25,res:0,min:8,sup:"ТОВ «Схід-Імпорт»"},
+  {id:1012,name:"Фініки Меджул, 500 г",price:312,cost:204,stock:6,res:0,min:10,sup:"ФОП Кравченко І.М."},
+  {id:1001,name:"Кіноа біла, 500 г",price:189,cost:112,stock:30,res:0,min:10,sup:"ТОВ «Агропродукт Плюс»"},
+  {id:1022,name:"Гель для прання, 1 л",price:212,cost:128,stock:18,res:0,min:6,sup:"ТОВ «Чистий Дім»"}],
+ customers:["Роман Марченко (Полтава)","Юлія Руденко (Львів)","Андрій Шевченко (Київ)","Оксана Марченко (Дніпро)"],
+ orders:[],deliveries:[],invoices:[],purchases:[],log:[],seq:{so:0,out:0,inv:0,po:0,in:0},t:0,sel:null});
+let S;try{S=JSON.parse(localStorage.getItem("zp_erp"))}catch(e){}
+if(!S||!S.products)S=INIT();
+let tab="sales";
+const save=()=>{try{localStorage.setItem("zp_erp",JSON.stringify(S))}catch(e){}};
+const P=id=>S.products.find(p=>p.id==id);
+const num=n=>n.toLocaleString("uk-UA");
+const pad=(n)=>String(n).padStart(4,"0");
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function log(mod,text,refs,short){S.t++;S.log.push({k:S.t,mod,text,refs,short:short||text})}
+function stockValue(){return S.products.reduce((a,p)=>a+p.stock*p.cost,0)}
+function msg(id,t,ok){const m=document.getElementById(id);if(!m)return;m.className="msg "+(ok?"ok":"err");m.textContent=t}
+const STC={"Чернетка":"","Підтверджено":"b","Готово до відвантаження":"y","Відвантажено":"g","Виставлено":"y","Оплачено":"g","Замовлено":"y","Отримано":"g"};
+const st=s=>`<span class="st ${STC[s]||""}">${s}</span>`;
+// ---- дії ----
+function createOrder(cust,pid,qty){
+ qty=Math.floor(+qty);if(!(qty>0))return msg("m1","Кількість має бути цілим числом більше нуля.");
+ S.seq.so++;const no="SO/"+pad(S.seq.so);const p=P(pid);
+ S.orders.push({no,cust,pid:+pid,qty,sum:qty*p.price,status:"Чернетка"});S.sel=no;
+ log("sales",`Створено замовлення ${no}: ${cust}, ${p.name} × ${qty}`,[no],`Створено ${no}`);save();render();msg("m1",`Замовлення ${no} створено як чернетку. Підтвердьте його в таблиці нижче.`,true)}
+function confirmOrder(no){const o=S.orders.find(x=>x.no==no),p=P(o.pid);const avail=p.stock-p.res;
+ if(o.qty>avail){S.sel=no;render();return msg("m2",`Недостатньо товару: доступно ${avail} шт. Склад не може зарезервувати ${o.qty}.`)}
+ p.res+=o.qty;o.status="Підтверджено";S.seq.out++;const d="WH/OUT/"+pad(S.seq.out);
+ S.deliveries.push({no:d,so:no,pid:o.pid,qty:o.qty,status:"Готово до відвантаження"});o.out=d;S.sel=no;
+ log("sales",`Підтверджено ${no}`,[no],"Підтверджено");log("wh",`Створено відвантаження ${d}, зарезервовано ${o.qty} шт «${p.name}»`,[no,d],`Зарезервовано ${o.qty} шт · ${d}`);save();render()}
+function ship(d){const x=S.deliveries.find(y=>y.no==d),p=P(x.pid),o=S.orders.find(y=>y.no==x.so);
+ p.stock-=x.qty;p.res-=x.qty;x.status="Відвантажено";o.status="Відвантажено";
+ S.seq.inv++;const inv="INV/"+pad(S.seq.inv);S.invoices.push({no:inv,so:o.no,cust:o.cust,sum:o.sum,status:"Виставлено"});o.inv=inv;S.sel=o.no;
+ log("wh",`Відвантажено ${d}: ${x.qty} шт «${p.name}» списано зі складу`,[o.no,d],`Відвантажено ${x.qty} шт`);
+ log("acc",`Виставлено рахунок ${inv} на ${num(o.sum)} грн`,[o.no,inv],`Рахунок ${inv} · ${num(o.sum)} грн`);save();render()}
+function pay(inv){const i=S.invoices.find(y=>y.no==inv),o=S.orders.find(y=>y.no==i.so);i.status="Оплачено";o.status="Оплачено";S.sel=o.no;
+ log("acc",`Отримано оплату за ${inv}: ${num(i.sum)} грн`,[o.no,inv],`Оплачено ${num(i.sum)} грн`);save();render()}
+function createPO(pid,qty){qty=Math.floor(+qty);if(!(qty>0))return msg("m3","Кількість має бути цілим числом більше нуля.");
+ const p=P(pid);S.seq.po++;const no="PO/"+pad(S.seq.po);S.purchases.push({no,pid:+pid,qty,sum:qty*p.cost,status:"Замовлено"});
+ log("buy",`Замовлено в постачальника ${no}: ${p.sup}, «${p.name}» × ${qty} на ${num(qty*p.cost)} грн`,[no]);save();render();msg("m3",`Замовлення постачальнику ${no} створено. Коли товар приїде — натисніть «Отримати товар».`,true)}
+function receive(no){const x=S.purchases.find(y=>y.no==no),p=P(x.pid);p.stock+=x.qty;x.status="Отримано";S.seq.in++;const r="WH/IN/"+pad(S.seq.in);
+ log("wh",`Прийнято на склад ${r}: ${x.qty} шт «${p.name}»`,[no,r]);log("acc",`Рахунок постачальника за ${no}: ${num(x.sum)} грн`,[no]);save();render()}
+// ---- вигляд ----
+function stockTable(){return `<div class="tw"><table><thead><tr><th>Товар</th><th class="num">На складі</th><th class="num">Зарезервовано</th><th class="num">Доступно</th><th class="num">Мінімум</th><th class="num">Вартість, грн</th></tr></thead><tbody>`+
+ S.products.map(p=>`<tr class="${p.stock-p.res<p.min?"low":""}"><td>${esc(p.name)}</td><td class="num">${p.stock}</td><td class="num">${p.res}</td><td class="num">${p.stock-p.res}</td><td class="num">${p.min}</td><td class="num">${num(p.stock*p.cost)}</td></tr>`).join("")+`</tbody></table></div>`}
+function path(no){const o=S.orders.find(x=>x.no==no);if(!o)return '<p class="note">Клацніть замовлення в таблиці, щоб побачити його шлях крізь компанію.</p>';
+ const ev=S.log.filter(e=>e.refs&&e.refs.includes(no));const mods=[...new Set(ev.map(e=>e.mod))];
+ return `<div class="path">`+ev.map((e,i)=>`${i?'<span class="arrow">→</span>':""}<div class="step" style="--c:${MOD[e.mod].c}"><b>${MOD[e.mod].n}</b><span>${esc(e.short||e.text)}</span></div>`).join("")+
+ `</div><p class="mods">Замовлення <b>${no}</b> побачили модулі: <b>${mods.map(m=>MOD[m].n).join(", ")}</b> — усього ${mods.length}. Ніхто нікому нічого не пересилав.</p>`}
+function vSales(){const opt=S.products.map(p=>`<option value="${p.id}">${esc(p.name)} — ${p.price} грн</option>`).join("");
+ return `<div class="grid"><section class="card"><h2><i class="dot" style="background:var(--sales)"></i>Нове замовлення клієнта</h2>
+ <form id="f1"><label>Клієнт<select id="c">${S.customers.map(c=>`<option>${esc(c)}</option>`).join("")}</select></label>
+ <label>Товар<select id="p">${opt}</select></label><label>Кількість<input id="q" type="number" min="1" value="1"></label><button class="btn main">Створити</button></form><div class="msg" id="m1"></div></section>
+ <section class="card"><h2><i class="dot" style="background:var(--sales)"></i>Що бачить продавець на складі</h2><p class="note">Не дзвінок комірнику, а та сама база: доступно = на складі − зарезервовано.</p>
+ <div class="tw"><table><tbody>${S.products.map(p=>`<tr><td>${esc(p.name)}</td><td class="num"><b>${p.stock-p.res}</b> доступно</td></tr>`).join("")}</tbody></table></div></section>
+ <section class="card full"><h2><i class="dot" style="background:var(--sales)"></i>Замовлення клієнтів</h2>${S.orders.length?`<div class="tw"><table><thead><tr><th>Документ</th><th>Клієнт</th><th>Товар</th><th class="num">К-сть</th><th class="num">Сума, грн</th><th>Статус</th><th></th></tr></thead><tbody>`+
+ S.orders.map(o=>`<tr class="click ${S.sel==o.no?"sel":""}" data-so="${o.no}"><td class="doc">${o.no}</td><td>${esc(o.cust)}</td><td>${esc(P(o.pid).name)}</td><td class="num">${o.qty}</td><td class="num">${num(o.sum)}</td><td>${st(o.status)}</td><td>${o.status=="Чернетка"?`<button class="btn main" data-confirm="${o.no}">Підтвердити</button>`:""}</td></tr>`).join("")+`</tbody></table></div>`:'<p class="note">Замовлень ще немає.</p>'}<div class="msg" id="m2"></div></section>
+ <section class="card full"><h2>Шлях документа</h2>${path(S.sel)}</section></div>`}
+function vWh(){const pend=S.deliveries;return `<div class="grid"><section class="card full"><h2><i class="dot" style="background:var(--wh)"></i>Відвантаження</h2>${pend.length?`<div class="tw"><table><thead><tr><th>Документ</th><th>Для замовлення</th><th>Товар</th><th class="num">К-сть</th><th>Статус</th><th></th></tr></thead><tbody>`+
+ pend.map(d=>`<tr><td class="doc">${d.no}</td><td class="doc">${d.so}</td><td>${esc(P(d.pid).name)}</td><td class="num">${d.qty}</td><td>${st(d.status)}</td><td>${d.status=="Готово до відвантаження"?`<button class="btn main" data-ship="${d.no}">Відвантажити</button>`:""}</td></tr>`).join("")+`</tbody></table></div>`:'<p class="note">Відвантажень немає. Вони з\'являються самі, коли продавець підтверджує замовлення.</p>'}</section>
+ <section class="card full"><h2><i class="dot" style="background:var(--wh)"></i>Залишки</h2>${stockTable()}</section></div>`}
+function vBuy(){const low=S.products.filter(p=>p.stock-p.res<p.min);const opt=S.products.map(p=>`<option value="${p.id}">${esc(p.name)} — собівартість ${p.cost} грн</option>`).join("");
+ return `<div class="grid"><section class="card"><h2><i class="dot" style="background:var(--buy)"></i>Потрібно дозамовити</h2>${low.length?low.map(p=>`<p><b>${esc(p.name)}</b>: доступно ${p.stock-p.res}, мінімум ${p.min}. Постачальник — ${esc(p.sup)}</p>`).join(""):'<p class="note">Усі товари вище мінімуму.</p>'}</section>
+ <section class="card"><h2><i class="dot" style="background:var(--buy)"></i>Нове замовлення постачальнику</h2><form id="f3"><label>Товар<select id="bp">${opt}</select></label><label>Кількість<input id="bq" type="number" min="1" value="1"></label><button class="btn main">Замовити</button></form><div class="msg" id="m3"></div></section>
+ <section class="card full"><h2><i class="dot" style="background:var(--buy)"></i>Замовлення постачальникам</h2>${S.purchases.length?`<div class="tw"><table><thead><tr><th>Документ</th><th>Товар</th><th class="num">К-сть</th><th class="num">Сума, грн</th><th>Статус</th><th></th></tr></thead><tbody>`+
+ S.purchases.map(x=>`<tr><td class="doc">${x.no}</td><td>${esc(P(x.pid).name)}</td><td class="num">${x.qty}</td><td class="num">${num(x.sum)}</td><td>${st(x.status)}</td><td>${x.status=="Замовлено"?`<button class="btn main" data-recv="${x.no}">Отримати товар</button>`:""}</td></tr>`).join("")+`</tbody></table></div>`:'<p class="note">Закупівель ще немає.</p>'}</section></div>`}
+function vAcc(){const paid=S.invoices.filter(i=>i.status=="Оплачено").reduce((a,i)=>a+i.sum,0);const open=S.invoices.filter(i=>i.status!="Оплачено").reduce((a,i)=>a+i.sum,0);
+ const spent=S.purchases.filter(x=>x.status=="Отримано").reduce((a,x)=>a+x.sum,0);
+ return `<div class="grid"><section class="card full"><h2><i class="dot" style="background:var(--acc)"></i>Рахунки клієнтам</h2><p class="note">Рахунок створюється сам у момент відвантаження — бухгалтеру не треба нічого переписувати.</p>${S.invoices.length?`<div class="tw"><table><thead><tr><th>Документ</th><th>Замовлення</th><th>Клієнт</th><th class="num">Сума, грн</th><th>Статус</th><th></th></tr></thead><tbody>`+
+ S.invoices.map(i=>`<tr><td class="doc">${i.no}</td><td class="doc">${i.so}</td><td>${esc(i.cust)}</td><td class="num">${num(i.sum)}</td><td>${st(i.status)}</td><td>${i.status!="Оплачено"?`<button class="btn main" data-pay="${i.no}">Позначити оплаченим</button>`:""}</td></tr>`).join("")+`</tbody></table></div>`:'<p class="note">Рахунків ще немає.</p>'}</section>
+ <section class="card"><h2>Гроші</h2><table><tbody><tr><td>Отримано від клієнтів</td><td class="num"><b>${num(paid)}</b> грн</td></tr><tr><td>Очікуємо оплату</td><td class="num">${num(open)} грн</td></tr><tr><td>Витрачено на закупівлі</td><td class="num">${num(spent)} грн</td></tr></tbody></table></section>
+ <section class="card"><h2>Вартість складу</h2><p style="font-size:26px;margin:0"><b>${num(stockValue())}</b> грн</p><p class="note">Залишки × собівартість. Та сама цифра, що у «Звіті».</p></section></div>`}
+function vRep(){const paid=S.invoices.filter(i=>i.status=="Оплачено").reduce((a,i)=>a+i.sum,0);const cnt=s=>S.orders.filter(o=>o.status==s).length;
+ return `<div class="kpis"><div class="kpi"><span>Виручка (оплачено), грн</span><b>${num(paid)}</b></div><div class="kpi"><span>Вартість складу, грн</span><b>${num(stockValue())}</b></div>
+ <div class="kpi"><span>Замовлень у роботі</span><b>${cnt("Чернетка")+cnt("Підтверджено")+cnt("Відвантажено")}</b></div><div class="kpi"><span>Товарів нижче мінімуму</span><b>${S.products.filter(p=>p.stock-p.res<p.min).length}</b></div></div>
+ <section class="card" style="margin-top:16px"><h2>Склад — ті самі числа, що бачать продажі й закупівлі</h2>${stockTable()}</section>`}
+function vLog(){return `<section class="card"><h2>Журнал усіх подій</h2><p class="note">Кожна дія записується один раз — у спільну базу.</p><ol class="log">`+
+ [...S.log].reverse().map(e=>`<li style="--c:${MOD[e.mod].c}"><span class="t">#${e.k}</span><span class="m">${MOD[e.mod].n}</span><span>${esc(e.text)}</span></li>`).join("")+`</ol>${S.log.length?"":'<p class="note">Подій ще немає.</p>'}</section>`}
+function render(){
+ const badges={wh:S.deliveries.filter(d=>d.status=="Готово до відвантаження").length,acc:S.invoices.filter(i=>i.status!="Оплачено").length,buy:S.products.filter(p=>p.stock-p.res<p.min).length,sales:S.orders.filter(o=>o.status=="Чернетка").length};
+ document.getElementById("nav").innerHTML=Object.entries(MOD).map(([k,m])=>`<button role="tab" aria-selected="${tab==k}" data-tab="${k}"><i class="dot" style="background:${m.c}"></i>${m.n}${badges[k]?`<span class="badge">${badges[k]}</span>`:""}</button>`).join("")+
+  `<span class="spacer"></span><button data-reset="1">Почати спочатку</button>`;
+ document.getElementById("view").innerHTML={sales:vSales,wh:vWh,buy:vBuy,acc:vAcc,rep:vRep,log:vLog}[tab]();
+}
+document.addEventListener("click",e=>{const b=e.target.closest("button,tr.click");if(!b)return;const d=b.dataset;
+ if(d.tab){tab=d.tab;try{history.replaceState(null,"","#"+tab)}catch(_){};render();return}
+ if(d.reset){if(confirm("Почати спочатку? Усі документи буде видалено, залишки повернуться до початкових.")){S=INIT();save();tab="sales";render()}return}
+ if(d.confirm)return confirmOrder(d.confirm);if(d.ship)return ship(d.ship);if(d.pay)return pay(d.pay);if(d.recv)return receive(d.recv);
+ if(d.so){S.sel=d.so;save();render()}});
+document.addEventListener("submit",e=>{e.preventDefault();if(e.target.id=="f1")createOrder(document.getElementById("c").value,document.getElementById("p").value,document.getElementById("q").value);
+ if(e.target.id=="f3")createPO(document.getElementById("bp").value,document.getElementById("bq").value)});
+const h=location.hash.slice(1);if(MOD[h])tab=h;
+render();
+</script></body></html>
